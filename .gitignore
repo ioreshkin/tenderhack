@@ -1,37 +1,18 @@
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-*.swp
-*.swo
-dist
-node_modules
-
-*.log
-*.tmp
-*.bak
-
-.env
-.env.*
-!.env.example
-
-*.exe
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-coverage.out
-cover.out
-
 .gocache/
 .gomodcache/
 
-docker-compose.override.yml
+generated/
+*.log
+*.err.log
+*.out.log
 
-*.pdf
+*.exe
+*.exe~
 
-api
-worker
+TenderHack_*.xlsx
 
-ml-service/ml/hf_cache/
+example/frontend/node_modules/
+example/frontend/dist/
+
+.idea/
+.vscode/

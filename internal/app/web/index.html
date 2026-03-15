@@ -1,0 +1,378 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TenderHack Расчет НМЦК</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <p class="eyebrow">TenderHack</p>
+        <h1>Расчет НМЦК</h1>
+        <p id="search-meta" class="muted">Загружаю данные...</p>
+      </div>
+
+      <button id="new-calc-btn" class="button button-primary button-wide" type="button">Новый расчет</button>
+
+      <section class="sidebar-section">
+        <div class="section-head compact-head">
+          <div>
+            <p class="section-kicker">Лоты</p>
+          </div>
+          <button id="new-lot-btn" class="button button-ghost" type="button">Новый лот</button>
+        </div>
+        <div id="lot-drafts" class="lot-draft-list"></div>
+      </section>
+
+      <section class="sidebar-section">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">История</p>
+            <h2>Последние документы</h2>
+          </div>
+        </div>
+        <div id="recent-docs" class="recent-list"></div>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace-header">
+        <div>
+          <h2>Поиск товара и обоснование НМЦК</h2>
+        </div>
+        <div id="calc-status" class="status-pill hidden" aria-live="polite"></div>
+      </header>
+
+      <section class="card search-card">
+        <div class="card-head split-head">
+          <div>
+            <p class="section-kicker">Быстрый поиск</p>
+            <h3>Найди товар по слову, бренду или коду СТЕ</h3>
+          </div>
+          <div class="header-actions">
+            <button id="search-add-manual-btn" class="button button-secondary" type="button">Добавить свою позицию</button>
+          </div>
+        </div>
+
+        <div class="search-layout">
+          <div class="search-stack">
+            <label class="field-label" for="query">Название товара или код СТЕ</label>
+            <div class="search-input-shell">
+              <input id="query" type="text" autocomplete="off" placeholder="Например: чайник, картридж hp, 37395070">
+              <div id="suggestions" class="suggestions hidden"></div>
+            </div>
+            <div id="query-hints" class="hint-row"></div>
+          </div>
+          <div class="search-note">
+            <p class="section-kicker">Как это работает</p>
+            <p class="muted">Подсказки появляются по мере ввода. Полный список вариантов открывается по Enter. Галочка сразу добавляет товар в активный лот.</p>
+          </div>
+        </div>
+
+        <div id="search-session" class="search-session hidden">
+          <div>
+            <p class="section-kicker">Смена выбора</p>
+            <p id="search-session-text" class="muted"></p>
+          </div>
+          <button id="restore-selection-btn" class="button button-ghost" type="button">Вернуть текущий товар</button>
+        </div>
+
+      </section>
+
+      <div id="content-grid" class="content-grid">
+        <div class="content-main">
+          <section id="search-results-panel" class="card search-results-panel hidden">
+            <div class="section-head compact-head">
+              <div>
+                <p class="section-kicker">Результаты поиска</p>
+                <h3>Выбери нужный товар</h3>
+              </div>
+              <div class="header-actions search-results-actions">
+                <span id="search-results-meta" class="muted"></span>
+              </div>
+            </div>
+            <div id="search-results" class="search-results"></div>
+          </section>
+
+          <section id="selected-panel" class="card hidden">
+            <div class="card-head split-head selected-head">
+              <div>
+                <p class="section-kicker">Выбрано</p>
+                <h3 id="selected-name">-</h3>
+                <p id="selected-meta" class="muted"></p>
+              </div>
+              <div class="header-actions">
+                <button id="change-item-btn" class="button button-ghost" type="button">Сменить товар</button>
+                <a id="open-doc-link" class="button button-ghost hidden" href="#" target="_blank" rel="noreferrer">Открыть PDF</a>
+                <button id="doc-btn" class="button button-secondary" type="button">Сформировать PDF</button>
+              </div>
+            </div>
+
+            <div class="selected-tags">
+              <span id="selected-id-tag" class="tag">Код СТЕ</span>
+              <span id="selected-category-tag" class="tag">Категория</span>
+              <span id="selected-manufacturer-tag" class="tag">Производитель</span>
+            </div>
+
+            <div class="selected-controls">
+              <div class="filters-grid">
+                <label class="field">
+                  <span>Сколько нужно купить</span>
+                  <input id="selected-quantity" type="number" min="1" step="1" value="1">
+                </label>
+                <label class="field">
+                  <span>Где будет закупка</span>
+                  <select id="region"></select>
+                </label>
+              </div>
+              <input id="months-back" type="hidden" value="1">
+
+              <section class="settings-box">
+                <div class="settings-head">
+                  <div>
+                    <p class="section-kicker">Настройки расчета</p>
+                    <h4>Простой или расширенный режим</h4>
+                  </div>
+                  <div class="mode-switch" role="tablist" aria-label="Режим настроек расчета">
+                    <button id="settings-simple-btn" class="mode-switch-btn active" type="button" data-settings-mode="simple">Простой</button>
+                    <button id="settings-advanced-btn" class="mode-switch-btn" type="button" data-settings-mode="advanced">Расширенный</button>
+                  </div>
+                </div>
+
+                <div id="settings-simple-panel" class="settings-panel">
+                  <div class="filters-grid">
+                    <label class="field">
+                      <span>Важность свежих цен</span>
+                      <select id="time-importance-label">
+                        <option value="очень важно">Очень важно</option>
+                        <option value="важно" selected>Важно</option>
+                        <option value="средне">Средне</option>
+                        <option value="неважно">Неважно</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Важность вашего региона</span>
+                      <select id="same-region-importance-label">
+                        <option value="очень важно" selected>Очень важно</option>
+                        <option value="важно">Важно</option>
+                        <option value="средне">Средне</option>
+                        <option value="неважно">Неважно</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Учет цен из других регионов</span>
+                      <select id="other-region-importance-label">
+                        <option value="очень важно">Очень важно</option>
+                        <option value="важно">Важно</option>
+                        <option value="средне" selected>Средне</option>
+                        <option value="неважно">Неважно</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <div id="settings-advanced-panel" class="settings-panel hidden">
+                  <div class="filters-grid">
+                    <label class="field">
+                      <span>Коэффициент важности свежих цен</span>
+                      <input id="time-decay" type="number" min="0" max="1" step="0.01" value="0.65">
+                    </label>
+                    <label class="field">
+                      <span>Вес своего региона</span>
+                      <input id="same-region-weight" type="number" min="0" max="1" step="0.01" value="1.00">
+                    </label>
+                    <label class="field">
+                      <span>Вес других регионов</span>
+                      <input id="other-region-weight" type="number" min="0" max="1" step="0.01" value="0.40">
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <div class="action-row selected-actions">
+                <button id="calc-btn" class="button button-primary" type="button">Рассчитать</button>
+                <button id="add-to-batch-btn" class="button button-secondary" type="button">Добавить в лот / обновить</button>
+                <button id="recalc-btn" class="button button-ghost" type="button">Исключить отмеченные и пересчитать</button>
+              </div>
+            </div>
+          </section>
+
+          <section id="manual-panel" class="card hidden">
+            <div class="section-head compact-head">
+              <div>
+                <p class="section-kicker">Товар пользователя</p>
+                <h3>Добавь свой товар для обоснования цены</h3>
+              </div>
+              <button id="add-manual-entry-btn" class="button button-secondary" type="button">Добавить свой товар</button>
+            </div>
+            <p class="muted">Если у тебя есть своя цена от поставщика или системы не хватает аналогов, добавь товар вручную. Здесь можно указать цену, НДС и влияние этой позиции на расчет. В итогах источник будет помечен как добавлено пользователем.</p>
+            <div id="manual-entries" class="manual-entries"></div>
+          </section>
+
+          <section id="summary-panel" class="card hidden">
+            <div class="section-head compact-head">
+              <div>
+                <p class="section-kicker">Сводка</p>
+                <h3>Итоги расчета</h3>
+              </div>
+            </div>
+            <div id="summary-cards" class="summary-grid"></div>
+            <div id="window-hint-panel" class="window-hint hidden"></div>
+          </section>
+
+          <section id="top-panel" class="card hidden">
+            <div class="section-head compact-head">
+              <div>
+                <p class="section-kicker">Рекомендации</p>
+                <h3>3 лучших варианта</h3>
+              </div>
+            </div>
+            <div id="top-recommendations" class="recommend-grid"></div>
+          </section>
+
+          <section id="steps-panel" class="card hidden">
+            <div class="section-head compact-head">
+              <div>
+                <p class="section-kicker">Обоснование</p>
+                <h3>Что произошло на каждом шаге</h3>
+              </div>
+            </div>
+            <div id="steps" class="steps-list"></div>
+          </section>
+
+          <section id="results-panel" class="card hidden">
+            <div class="section-head compact-head">
+              <div>
+                <p class="section-kicker">Аналоги</p>
+                <h3>Все отобранные закупки</h3>
+              </div>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Дата</th>
+                    <th>Код СТЕ</th>
+                    <th>Цена с НДС</th>
+                    <th>НДС / без НДС</th>
+                    <th>Цена после правки, с НДС</th>
+                    <th>Регион</th>
+                    <th>Похожесть</th>
+                    <th>Вклад в расчет</th>
+                    <th>Ручная поправка</th>
+                    <th>Источник</th>
+                    <th>Статус</th>
+                  </tr>
+                </thead>
+                <tbody id="results-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <aside class="content-rail">
+          <section id="batch-panel" class="card lot-card hidden">
+            <div class="section-head compact-head">
+              <div>
+                <p class="section-kicker">Лот</p>
+                <h3>Несколько товаров в одном документе</h3>
+              </div>
+              <div class="header-actions">
+                <a id="open-batch-doc-link" class="button button-ghost hidden" href="#" target="_blank" rel="noreferrer">Открыть PDF лота</a>
+                <button id="batch-doc-btn" class="button button-secondary" type="button">PDF по лоту</button>
+                <button id="batch-calc-btn" class="button button-primary" type="button">Рассчитать лот</button>
+              </div>
+            </div>
+            <div class="batch-toolbar">
+              <label class="field batch-name-field">
+                <span>Название лота</span>
+                <input id="batch-name" type="text" placeholder="Например: Поставка канцелярии и хозтоваров">
+              </label>
+              <button id="batch-add-manual-btn" class="button button-secondary" type="button">Добавить свою позицию</button>
+            </div>
+            <section class="settings-box lot-settings-box">
+              <div class="settings-head">
+                <div>
+                  <p class="section-kicker">Общие настройки лота</p>
+                  <h4>Параметры для всех позиций сразу</h4>
+                </div>
+                <div class="mode-switch" role="tablist" aria-label="Режим настроек лота">
+                  <button id="batch-settings-simple-btn" class="mode-switch-btn active" type="button">Простой</button>
+                  <button id="batch-settings-advanced-btn" class="mode-switch-btn" type="button">Расширенный</button>
+                </div>
+              </div>
+              <div class="filters-grid lot-settings-grid">
+                <label class="field">
+                  <span>Где будет закупка</span>
+                  <select id="batch-region"></select>
+                </label>
+              </div>
+              <input id="batch-months-back" type="hidden" value="1">
+              <p class="muted auto-window-note">Стартуем с 1 месяца и расширяем окно по 1 месяцу, пока не найдено хотя бы 3 закупки, но не больше 12 месяцев. После расчета показываем точный диапазон дат.</p>
+              <div id="batch-settings-simple-panel" class="settings-panel">
+                <div class="filters-grid lot-settings-grid">
+                  <label class="field">
+                    <span>Важность свежих цен</span>
+                    <select id="batch-time-importance-label">
+                      <option value="очень важно">Очень важно</option>
+                      <option value="важно" selected>Важно</option>
+                      <option value="средне">Средне</option>
+                      <option value="неважно">Неважно</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Важность вашего региона</span>
+                    <select id="batch-same-region-importance-label">
+                      <option value="очень важно" selected>Очень важно</option>
+                      <option value="важно">Важно</option>
+                      <option value="средне">Средне</option>
+                      <option value="неважно">Неважно</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Учет цен из других регионов</span>
+                    <select id="batch-other-region-importance-label">
+                      <option value="очень важно">Очень важно</option>
+                      <option value="важно">Важно</option>
+                      <option value="средне" selected>Средне</option>
+                      <option value="неважно">Неважно</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div id="batch-settings-advanced-panel" class="settings-panel hidden">
+                <div class="filters-grid lot-settings-grid">
+                  <label class="field">
+                    <span>Коэффициент важности свежих цен</span>
+                    <input id="batch-time-decay" type="number" min="0" max="1" step="0.01" value="0.65">
+                  </label>
+                  <label class="field">
+                    <span>Вес своего региона</span>
+                    <input id="batch-same-region-weight" type="number" min="0" max="1" step="0.01" value="1.00">
+                  </label>
+                  <label class="field">
+                    <span>Вес других регионов</span>
+                    <input id="batch-other-region-weight" type="number" min="0" max="1" step="0.01" value="0.40">
+                  </label>
+                </div>
+              </div>
+            </section>
+            <div id="batch-items" class="batch-items"></div>
+            <div id="batch-summary" class="batch-summary hidden"></div>
+            <section id="batch-disclosure" class="batch-disclosure hidden">
+              <div class="batch-disclosure-title">Кратко по позициям</div>
+              <div id="batch-results" class="batch-results"></div>
+            </section>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

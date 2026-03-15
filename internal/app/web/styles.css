@@ -31,7 +31,6 @@ body {
   margin: 0;
   color: var(--ink);
   font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
-  overflow-x: clip;
   background:
     radial-gradient(circle at top left, rgba(148, 163, 184, 0.24), transparent 28%),
     radial-gradient(circle at bottom right, rgba(203, 213, 225, 0.5), transparent 24%),
@@ -799,12 +798,8 @@ button.recent-doc {
 .batch-manual-grid {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(200px, 2fr) minmax(180px, 1.4fr) minmax(180px, 1.4fr) minmax(140px, 1fr) minmax(110px, 0.8fr);
   gap: 10px;
-}
-
-.batch-manual-grid .field {
-  min-width: 0;
 }
 
 .batch-manual-grid .field span {

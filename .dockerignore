@@ -1,0 +1,8 @@
+.git
+.gocache
+.gomodcache
+generated
+example
+server*.log
+tenderhack.exe
+*.pdf

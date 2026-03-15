@@ -9,6 +9,8 @@ generated/
 *.exe
 *.exe~
 
+TenderHack_*.xlsx
+
 example/frontend/node_modules/
 example/frontend/dist/
 

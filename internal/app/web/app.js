@@ -1185,7 +1185,6 @@ function addManualBatchItem() {
   invalidateBatchResults();
   renderBatchPanel();
   syncActiveLot();
-  focusBatchPanel();
   setStatus("В лот добавлена пользовательская позиция. Заполни название, цену и НДС.", "success");
 }
 
